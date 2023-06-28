@@ -3,10 +3,18 @@
 elev=$(echo $1 | tr -cd '[:digit:].-')
 unit=$(echo $2 | tr -cd '[:alpha:].-')
 
+if ! [[ $unit =~ ^(feet|meters)$ ]]; then 
+   echo
+   echo "Invalid unit: $unit"
+   echo
+   echo "Usage meters or feet required :"
+   echo "readsb-set-elevation 1440 meters"
+   echo "readsb-set-elevation 1440 feet"
+   exit 1
+fi
+
+
 if [ $unit = "meters" ]; then
-    echo
-    echo "meters"
-    echo
     unitabr="m"
     if ! awk "BEGIN{ exit ($elev > 8448) }" || ! awk "BEGIN{ exit ($elev < -1000) }"; then
         echo
@@ -21,9 +29,6 @@ if [ $unit = "meters" ]; then
 fi
 
 if [ $unit = "feet" ]; then
-    echo
-    echo "feet"
-    echo
     unitabr="ft"
     if ! awk "BEGIN{ exit ($elev > 18000) }" || ! awk "BEGIN{ exit ($elev < -10000) }"; then
         echo
@@ -31,7 +36,7 @@ if [ $unit = "feet" ]; then
         echo "Elevation must be between -10000 and 18000"
         echo
         echo "Usage:"
-        echo "readsb-set-location 1440 feet"
+        echo "readsb-set-elevation 1440 feet"
         echo
         exit 1
     fi
@@ -44,11 +49,16 @@ if ! grep -e '--alt' /etc/default/readsb &>/dev/null; then sed -i -e 's/DECODER_
 
 # --alt\s*.?[0-9]*.?[0-9]ft
 if [ $unit = "feet" ]; then
-
+   echo
+   echo "adding --alt $elev$unitabr"
+   echo
    sed -i -E -e "s/--alt .?[0-9]*.?[0-9](ft|m)* /--alt $elev$unitabr /" /etc/default/readsb
 fi
 
 if [ $unit = "meters" ]; then
+   echo
+   echo "adding --alt $elev$unitabr"
+   echo
    sed -i -E -e "s/--alt .?[0-9]*.?[0-9](ft|m)* /--alt $elev$unitabr /" /etc/default/readsb
 fi
 
